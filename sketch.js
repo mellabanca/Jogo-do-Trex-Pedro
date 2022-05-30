@@ -13,6 +13,8 @@ var gameOver, gameOverImage,restart,restartImage;
 
 var jumpSong, deathSong, pointSong;
 
+var mensagem = "Na minha cidade não para de chover";
+
 function preload(){
   trex_running = loadAnimation("trex1.png","trex3.png","trex4.png");
   trex_collided = loadAnimation("trex_collided.png");
@@ -30,6 +32,9 @@ function preload(){
   
   gameOverImage = loadImage("gameOver.png");
   restartImage = loadImage("restart.png");
+  jumpSong = loadSound("jump.mp3");
+  deathSong = loadSound("die.mp3");
+  pointSong = loadSound("checkPoint.mp3");
 }
 
 function setup() {
@@ -54,7 +59,7 @@ function setup() {
   obstaclesGroup = new Group();
   cloudsGroup = new Group();
   
-  console.log("Hello" + 5);
+  //console.log("Hello" + 5);
   
   score = 0;
 
@@ -63,19 +68,22 @@ function setup() {
   restart = createSprite(300,150);
   restart.scale = 0.5
   restart.addImage(restartImage);
+  
 }
 
 function draw() {
   background(180);
   text("Score: "+ score, 500,50);
+  //console.log(mensagem);
   
   
   if(gameState === PLAY){
     //mover o solo
-    ground.velocityX = -4;
+    ground.velocityX = -(4 + score / 100);
     score = score + Math.round(frameCount/60);
     if(keyDown("space")&& trex.y >= 100) {
       trex.velocityY = -13;
+      jumpSong.play();
     }
     trex.velocityY = trex.velocityY + 0.8
     if (ground.x < 0){
@@ -85,10 +93,14 @@ function draw() {
     spawnObstacles();
     if(obstaclesGroup.isTouching(trex)){
       gameState = END
+      deathSong.play();
     }
     gameOver.visible = false;
     restart.visible = false;
-
+    if(score%100 === 0&& score>0){
+      pointSong.play();
+      pointSong.setVolume(0.5)
+    }
 
   }
   else if(gameState === END){
@@ -109,7 +121,9 @@ function draw() {
   
   
   
-  
+  if(mousePressedOver(restart)){
+    reset();
+  }
   
   trex.collide(invisibleGround);
   
@@ -122,10 +136,14 @@ function draw() {
   drawSprites();
 }
 
+function reset(){
+  
+}
+
 function spawnObstacles(){
  if (frameCount % 60 === 0){
    var obstacle = createSprite(600,165,10,40);
-   obstacle.velocityX = -6;
+   obstacle.velocityX = -(6+score /100);
 
    
     // //gerar obstáculos aleatórios
