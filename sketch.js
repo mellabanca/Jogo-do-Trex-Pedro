@@ -38,21 +38,21 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(600, 200);
+  createCanvas(windowWidth, windowHeight);
   
-  trex = createSprite(50,180,20,50);
+  ground = createSprite(width/2,height-80,width,125);
+  ground.addImage("ground",groundImage);
+  ground.x = ground.width /2;
+  ground.velocityX = -4;
+
+  trex = createSprite(50,height-70,20,50);
   trex.addAnimation("running", trex_running);
   trex.addAnimation("collided" , trex_collided)
   trex.scale = 0.5;
   trex.debug = false;
   trex.setCollider("circle", 0, 0, 40);
   
-  ground = createSprite(200,180,400,20);
-  ground.addImage("ground",groundImage);
-  ground.x = ground.width /2;
-  ground.velocityX = -4;
-  
-  invisibleGround = createSprite(200,190,400,10);
+  invisibleGround = createSprite(width/2,height-10,width,125);
   invisibleGround.visible = false;
   
   //crie Grupos de Obstáculos e Nuvens
@@ -63,9 +63,9 @@ function setup() {
   
   score = 0;
 
-  gameOver = createSprite(300,100);
+  gameOver = createSprite(width/2,height/2-50);
   gameOver.addImage(gameOverImage);
-  restart = createSprite(300,150);
+  restart = createSprite(width/2,height/2);
   restart.scale = 0.5
   restart.addImage(restartImage);
   
@@ -73,17 +73,18 @@ function setup() {
 
 function draw() {
   background(180);
-  text("Score: "+ score, 500,50);
+ 
   //console.log(mensagem);
   
   
   if(gameState === PLAY){
     //mover o solo
-    ground.velocityX = -(4 + score / 100);
-    score = score + Math.round(frameCount/60);
-    if(keyDown("space")&& trex.y >= 100) {
-      trex.velocityY = -13;
+    ground.velocityX = -(5.5 +4* score / 100);
+    score = score + Math.round(frameRate()/60);
+    if(keyDown("space")&& trex.y >= height-120 || touches.length > 0 && trex.y >= height-120){
+      trex.velocityY = -11;
       jumpSong.play();
+      touches = [];
     }
     trex.velocityY = trex.velocityY + 0.8
     if (ground.x < 0){
@@ -115,14 +116,10 @@ function draw() {
     cloudsGroup.setLifetimeEach(-1);
     obstaclesGroup.setLifetimeEach(-1);
     trex.velocityY = 0;
-  }
-  
-  
-  
-  
-  
-  if(mousePressedOver(restart)){
-    reset();
+    if(mousePressedOver(restart) || touches.length > 0){
+      reset();
+      touches = [];
+    }
   }
   
   trex.collide(invisibleGround);
@@ -134,16 +131,22 @@ function draw() {
  
   
   drawSprites();
+  text("Score: "+ score, 50,height/2-200);
 }
 
 function reset(){
-  
+  gameState = PLAY;
+  cloudsGroup.destroyEach();
+  obstaclesGroup.destroyEach();
+  trex.changeAnimation("running");
+  score = 0;
+
 }
 
 function spawnObstacles(){
  if (frameCount % 60 === 0){
-   var obstacle = createSprite(600,165,10,40);
-   obstacle.velocityX = -(6+score /100);
+   var obstacle = createSprite(width,height-95,10,40);
+   obstacle.velocityX = -(6+4*score /100);
 
    
     // //gerar obstáculos aleatórios
@@ -179,8 +182,8 @@ function spawnObstacles(){
 function spawnClouds() {
   //escreva o código aqui para gerar as nuvens
   if (frameCount % 60 === 0) {
-     cloud = createSprite(600,100,40,10);
-    cloud.y = Math.round(random(10,60));
+     cloud = createSprite(width+10,height/2,40,10);
+    cloud.y = Math.round(random(10,height/2+100));
     cloud.addImage(cloudImage);
     cloud.scale = 0.5;
     cloud.velocityX = -3;
